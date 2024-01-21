@@ -29,6 +29,7 @@
 
 #include "SpineAttachment.h"
 #include "SpineCommon.h"
+#include "SpineSlot.h"
 
 void SpineAttachment::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_attachment_name"), &SpineAttachment::get_attachment_name);
@@ -52,3 +53,25 @@ Ref<SpineAttachment> SpineAttachment::copy() {
 	attachment_ref->set_spine_object(get_spine_owner(), copy);
 	return attachment_ref;
 }
+
+
+void SpineBoundingBoxAttachment::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_vertices", "slot"), &SpineBoundingBoxAttachment::get_vertices);
+}
+
+PackedVector2Array SpineBoundingBoxAttachment::get_vertices(Ref<SpineSlot> p_slot)
+{
+	spine::BoundingBoxAttachment *attachment = (spine::BoundingBoxAttachment *)get_spine_object();
+	if (attachment == nullptr)
+		return PackedVector2Array();
+	
+	spine::Vector<float> spVecs;
+	spVecs.setSize(attachment->getWorldVerticesLength(), 0);
+	attachment->computeWorldVertices(*p_slot->get_spine_object(), spVecs);
+	size_t count = spVecs.size() / 2;
+	Vector<Point2> vertices;
+	vertices.resize(count);
+	memcpy(vertices.ptrw(), spVecs.buffer(), count * 2 * sizeof(float));
+	
+	return vertices;
+};

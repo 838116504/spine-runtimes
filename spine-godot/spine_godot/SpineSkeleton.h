@@ -29,6 +29,7 @@
 
 #pragma once
 
+#include "SpineConstant.h"
 #include "SpineCommon.h"
 #include "SpineSkeletonDataResource.h"
 #include "SpineBone.h"
@@ -36,10 +37,12 @@
 #include "SpineIkConstraint.h"
 #include "SpineTransformConstraint.h"
 #include "SpinePathConstraint.h"
+#include "SpinePhysicsConstraint.h"
 
 #include <unordered_map>
 
 class SpineSprite;
+
 
 class SpineSkeleton : public REFCOUNTED {
 	GDCLASS(SpineSkeleton, REFCOUNTED);
@@ -67,6 +70,7 @@ private:
 	SpineSprite *sprite;
 	spine::Vector<float> bounds_vertex_buffer;
 	Ref<SpineSkin> last_skin;
+	spine::Physics physics_update_mode = spine::Physics_Update;
 
 	std::unordered_map<spine::Bone *, Ref<SpineBone>> _cached_bones;
 	std::unordered_map<spine::Slot *, Ref<SpineSlot>> _cached_slots;
@@ -102,6 +106,8 @@ public:
 	Ref<SpineTransformConstraint> find_transform_constraint(const String &constraint_name);
 
 	Ref<SpinePathConstraint> find_path_constraint(const String &constraint_name);
+
+	Ref<SpinePhysicsConstraint> find_physics_constraint(const String &constraint_name);
 
 	Rect2 get_bounds();
 
@@ -142,4 +148,7 @@ public:
 	float get_scale_y();
 
 	void set_scale_y(float v);
+
+	SpineConstant::PhysicsUpdateMode get_physics_update_mode() const;
+	void set_physics_update_mode(SpineConstant::PhysicsUpdateMode p_mode);
 };

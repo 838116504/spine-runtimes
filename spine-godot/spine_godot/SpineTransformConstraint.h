@@ -29,13 +29,19 @@
 
 #pragma once
 
+#include "SpineConstant.h"
 #include "SpineCommon.h"
 #include "SpineTransformConstraintData.h"
 #include "SpineBone.h"
 #include <spine/TransformConstraint.h>
 
+enum PhysicsUpdateMode : int;
+
 class SpineTransformConstraint : public SpineSpriteOwnedObject<spine::TransformConstraint> {
 	GDCLASS(SpineTransformConstraint, SpineObjectWrapper)
+
+public:
+	spine::Physics physics_update_mode;
 
 protected:
 	static void _bind_methods();
@@ -80,4 +86,7 @@ public:
 	bool is_active();
 
 	void set_active(bool v);
+
+	SpineConstant::PhysicsUpdateMode get_physics_update_mode() const;
+	void set_physics_update_mode(SpineConstant::PhysicsUpdateMode p_mode);
 };

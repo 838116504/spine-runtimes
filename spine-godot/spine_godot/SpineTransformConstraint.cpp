@@ -51,11 +51,15 @@ void SpineTransformConstraint::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_mix_shear_y", "v"), &SpineTransformConstraint::set_mix_shear_y);
 	ClassDB::bind_method(D_METHOD("is_active"), &SpineTransformConstraint::is_active);
 	ClassDB::bind_method(D_METHOD("set_active", "v"), &SpineTransformConstraint::set_active);
+	ClassDB::bind_method(D_METHOD("get_physics_update_mode"), &SpineTransformConstraint::get_physics_update_mode);
+	ClassDB::bind_method(D_METHOD("set_physics_update_mode", "v"), &SpineTransformConstraint::set_physics_update_mode);
+	
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "physics_update_mode", PROPERTY_HINT_ENUM, "None,Reset,Update,Pose", PROPERTY_USAGE_DEFAULT), "set_physics_update_mode", "get_physics_update_mode");
 }
 
 void SpineTransformConstraint::update() {
 	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->update();
+	get_spine_object()->update(physics_update_mode);
 }
 
 int SpineTransformConstraint::get_order() {
@@ -167,4 +171,14 @@ bool SpineTransformConstraint::is_active() {
 void SpineTransformConstraint::set_active(bool v) {
 	SPINE_CHECK(get_spine_object(), )
 	get_spine_object()->setActive(v);
+}
+
+SpineConstant::PhysicsUpdateMode SpineTransformConstraint::get_physics_update_mode() const
+{
+	return (SpineConstant::PhysicsUpdateMode)physics_update_mode;
+}
+
+void SpineTransformConstraint::set_physics_update_mode(SpineConstant::PhysicsUpdateMode p_mode)
+{
+	physics_update_mode = (spine::Physics)p_mode;
 }

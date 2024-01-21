@@ -29,6 +29,7 @@
 
 #include "SpineAnimationState.h"
 #include "SpineTrackEntry.h"
+#include "SpineEvent.h"
 
 void SpineAnimationState::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("update", "delta"), &SpineAnimationState::update, DEFVAL(0));
@@ -46,6 +47,18 @@ void SpineAnimationState::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_time_scale", "time_scale"), &SpineAnimationState::set_time_scale);
 	ClassDB::bind_method(D_METHOD("disable_queue"), &SpineAnimationState::disable_queue);
 	ClassDB::bind_method(D_METHOD("enable_queue"), &SpineAnimationState::enable_queue);
+	
+	ClassDB::bind_method(D_METHOD("set_skeleton_data_res", "skeleton_data_res"), &SpineAnimationState::set_skeleton_data_res);
+	ClassDB::bind_method(D_METHOD("get_skeleton_data_res"), &SpineAnimationState::get_skeleton_data_res);
+	ClassDB::bind_method(D_METHOD("_on_skeleton_data_changed"), &SpineAnimationState::_on_skeleton_data_changed);
+	
+	ADD_SIGNAL(MethodInfo("animation_started", PropertyInfo(Variant::OBJECT, "track_entry", PROPERTY_HINT_RESOURCE_TYPE, "SpineTrackEntry")));
+	ADD_SIGNAL(MethodInfo("animation_interrupted", PropertyInfo(Variant::OBJECT, "track_entry", PROPERTY_HINT_RESOURCE_TYPE, "SpineTrackEntry")));
+	ADD_SIGNAL(MethodInfo("animation_ended", PropertyInfo(Variant::OBJECT, "track_entry", PROPERTY_HINT_RESOURCE_TYPE, "SpineTrackEntry")));
+	ADD_SIGNAL(MethodInfo("animation_completed", PropertyInfo(Variant::OBJECT, "track_entry", PROPERTY_HINT_RESOURCE_TYPE, "SpineTrackEntry")));
+	ADD_SIGNAL(MethodInfo("animation_disposed", PropertyInfo(Variant::OBJECT, "track_entry", PROPERTY_HINT_RESOURCE_TYPE, "SpineTrackEntry")));
+	ADD_SIGNAL(MethodInfo("animation_event", PropertyInfo(Variant::OBJECT, "track_entry", PROPERTY_HINT_RESOURCE_TYPE, "SpineTrackEntry"), PropertyInfo(Variant::OBJECT, "event", PROPERTY_HINT_RESOURCE_TYPE, "SpineEvent")));
+	ADD_SIGNAL(MethodInfo("before_update", PropertyInfo(Variant::FLOAT, "delta")));
 }
 
 SpineAnimationState::SpineAnimationState() : animation_state(nullptr), sprite(nullptr) {
@@ -61,9 +74,65 @@ void SpineAnimationState::set_spine_sprite(SpineSprite *_sprite) {
 	sprite = _sprite;
 	if (!sprite || !sprite->get_skeleton_data_res().is_valid() || !sprite->get_skeleton_data_res()->is_skeleton_data_loaded()) return;
 	animation_state = new spine::AnimationState(sprite->get_skeleton_data_res()->get_animation_state_data());
+	animation_state->setListener(this);
+}
+
+
+bool SpineAnimationState::has_spine_sprite() const
+{
+	return sprite != nullptr;
+}
+
+Ref<SpineSkeletonDataResource> SpineAnimationState::get_skeleton_data_res()
+{
+	if (sprite)
+		return sprite->get_skeleton_data_res();
+	
+	return skeleton_data_res;
+}
+
+void SpineAnimationState::set_skeleton_data_res(Ref<SpineSkeletonDataResource> p_res)
+{
+	if (skeleton_data_res == p_res)
+		return;
+	
+	if (skeleton_data_res.is_valid())
+	{
+#if VERSION_MAJOR > 3
+		if (skeleton_data_res->is_connected("skeleton_data_changed", callable_mp(this, &SpineAnimationState::_on_skeleton_data_changed)))
+			skeleton_data_res->disconnect("skeleton_data_changed", callable_mp(this, &SpineAnimationState::_on_skeleton_data_changed));
+#else
+		if (skeleton_data_res->is_connected("skeleton_data_changed", this, "_on_skeleton_data_changed"))
+			skeleton_data_res->disconnect("skeleton_data_changed", this, "_on_skeleton_data_changed");
+#endif
+		skeleton_data_res = Ref<SpineSkeletonDataResource>();
+	}
+	
+	if (has_spine_sprite())
+		set_spine_sprite(nullptr);
+	
+	if (p_res.is_null() || !p_res->is_skeleton_data_loaded())
+		return;
+	
+	skeleton_data_res = p_res;
+	animation_state = new spine::AnimationState(p_res->get_animation_state_data());
+	animation_state->setListener(this);
+}
+
+void SpineAnimationState::_on_skeleton_data_changed()
+{
+	delete animation_state;
+	animation_state = nullptr;
+	
+	if (skeleton_data_res->is_skeleton_data_loaded())
+	{
+		animation_state = new spine::AnimationState(skeleton_data_res->get_animation_state_data());
+		animation_state->setListener(this);
+	}
 }
 
 void SpineAnimationState::update(float delta) {
+	emit_signal(SNAME("before_update"), delta);
 	SPINE_CHECK(animation_state, )
 	animation_state->update(delta);
 }
@@ -104,7 +173,7 @@ Ref<SpineTrackEntry> SpineAnimationState::set_animation(const String &animation_
 	}
 	auto track_entry = animation_state->setAnimation(track, animation, loop);
 	Ref<SpineTrackEntry> track_entry_ref(memnew(SpineTrackEntry));
-	track_entry_ref->set_spine_object(sprite, track_entry);
+	track_entry_ref->set_spine_object(*get_skeleton_data_res(), track_entry);
 	return track_entry_ref;
 }
 
@@ -118,7 +187,7 @@ Ref<SpineTrackEntry> SpineAnimationState::add_animation(const String &animation_
 	}
 	auto track_entry = animation_state->addAnimation(track, animation, loop, delay);
 	Ref<SpineTrackEntry> track_entry_ref(memnew(SpineTrackEntry));
-	track_entry_ref->set_spine_object(sprite, track_entry);
+	track_entry_ref->set_spine_object(*get_skeleton_data_res(), track_entry);
 	return track_entry_ref;
 }
 
@@ -126,14 +195,14 @@ Ref<SpineTrackEntry> SpineAnimationState::set_empty_animation(int track_id, floa
 	SPINE_CHECK(animation_state, nullptr)
 	auto track_entry = animation_state->setEmptyAnimation(track_id, mix_duration);
 	Ref<SpineTrackEntry> track_entry_ref(memnew(SpineTrackEntry));
-	track_entry_ref->set_spine_object(sprite, track_entry);
+	track_entry_ref->set_spine_object(*get_skeleton_data_res(), track_entry);
 	return track_entry_ref;
 }
 Ref<SpineTrackEntry> SpineAnimationState::add_empty_animation(int track_id, float mix_duration, float delay) {
 	SPINE_CHECK(animation_state, nullptr)
 	auto track_entry = animation_state->addEmptyAnimation(track_id, mix_duration, delay);
 	Ref<SpineTrackEntry> track_entry_ref(memnew(SpineTrackEntry));
-	track_entry_ref->set_spine_object(sprite, track_entry);
+	track_entry_ref->set_spine_object(*get_skeleton_data_res(), track_entry);
 	return track_entry_ref;
 }
 void SpineAnimationState::set_empty_animations(float mix_duration) {
@@ -146,7 +215,7 @@ Ref<SpineTrackEntry> SpineAnimationState::get_current(int track_index) {
 	auto track_entry = animation_state->getCurrent(track_index);
 	if (!track_entry) return nullptr;
 	Ref<SpineTrackEntry> track_entry_ref(memnew(SpineTrackEntry));
-	track_entry_ref->set_spine_object(sprite, track_entry);
+	track_entry_ref->set_spine_object(*get_skeleton_data_res(), track_entry);
 	return track_entry_ref;
 }
 
@@ -168,4 +237,36 @@ void SpineAnimationState::disable_queue() {
 void SpineAnimationState::enable_queue() {
 	SPINE_CHECK(animation_state, )
 	animation_state->enableQueue();
+}
+
+void SpineAnimationState::callback(spine::AnimationState *state, spine::EventType type, spine::TrackEntry *entry, spine::Event *event) {
+	Ref<SpineTrackEntry> entry_ref = Ref<SpineTrackEntry>(memnew(SpineTrackEntry));
+	entry_ref->set_spine_object(*get_skeleton_data_res(), entry);
+
+	Ref<SpineEvent> event_ref(nullptr);
+	if (event) {
+		event_ref = Ref<SpineEvent>(memnew(SpineEvent));
+		event_ref->set_spine_object(*get_skeleton_data_res(), event);
+	}
+
+	switch (type) {
+		case spine::EventType_Start:
+			emit_signal(SNAME("animation_started"), entry_ref);
+			break;
+		case spine::EventType_Interrupt:
+			emit_signal(SNAME("animation_interrupted"), entry_ref);
+			break;
+		case spine::EventType_End:
+			emit_signal(SNAME("animation_ended"), entry_ref);
+			break;
+		case spine::EventType_Complete:
+			emit_signal(SNAME("animation_completed"), entry_ref);
+			break;
+		case spine::EventType_Dispose:
+			emit_signal(SNAME("animation_disposed"), entry_ref);
+			break;
+		case spine::EventType_Event:
+			emit_signal(SNAME("animation_event"), entry_ref, event_ref);
+			break;
+	}
 }

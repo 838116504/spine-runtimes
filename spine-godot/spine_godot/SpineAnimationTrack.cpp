@@ -37,7 +37,7 @@
 #include "scene/resources/animation.h"
 
 #ifdef TOOLS_ENABLED
-#include "godot/editor/editor_node.h"
+#include "editor/editor_node.h"
 #include "editor/plugins/animation_player_editor_plugin.h"
 #include "editor/plugins/animation_tree_editor_plugin.h"
 #endif
@@ -301,8 +301,8 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 					entry->setShortestRotation(shortest_rotation);
 					entry->setTimeScale(time_scale);
 					entry->setAlpha(alpha);
-					entry->setAttachmentThreshold(attachment_threshold);
-					entry->setDrawOrderThreshold(draw_order_threshold);
+					entry->setMixAttachmentThreshold(attachment_threshold);
+					entry->setMixDrawOrderThreshold(draw_order_threshold);
 					entry->setMixBlend((spine::MixBlend) mix_blend);
 
 					if (debug) print_line(String("Setting animation {0} with mix_duration {1} on track {2} on {3}").format(varray(animation_name, mix_duration, track_index, sprite->get_name())).utf8().ptr());
@@ -406,8 +406,8 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 		entry->setReverse(reverse);
 		entry->setShortestRotation(shortest_rotation);
 		entry->setAlpha(alpha);
-		entry->setAttachmentThreshold(attachment_threshold);
-		entry->setDrawOrderThreshold(draw_order_threshold);
+		entry->setMixAttachmentThreshold(attachment_threshold);
+		entry->setMixDrawOrderThreshold(draw_order_threshold);
 		entry->setMixBlend((spine::MixBlend) mix_blend);
 #endif
 	} else {
@@ -426,8 +426,8 @@ void SpineAnimationTrack::update_animation_state(const Variant &variant_sprite) 
 					entry->setShortestRotation(shortest_rotation);
 					entry->setTimeScale(time_scale);
 					entry->setAlpha(alpha);
-					entry->setAttachmentThreshold(attachment_threshold);
-					entry->setDrawOrderThreshold(draw_order_threshold);
+					entry->setMixAttachmentThreshold(attachment_threshold);
+					entry->setMixDrawOrderThreshold(draw_order_threshold);
 					entry->setMixBlend((spine::MixBlend) mix_blend);
 
 					if (debug) print_line(String("Setting animation {0} with mix_duration {1} on track {2} on {3}").format(varray(animation_name, mix_duration, track_index, sprite->get_name())).utf8().ptr());

@@ -386,7 +386,7 @@ void PhysicsConstraint::update(Physics physics) {
 					}
 
 					remaining = _remaining;
-					if (remaining >= step) {
+					if (remaining >= step && step > 0) {
 						float m = _massInverse * step, e = _strength;
 						float d = MathUtil::pow(_damping, 60 * step);
 						while (true) {
@@ -463,4 +463,8 @@ void PhysicsConstraint::update(Physics physics) {
 		_ty = l * bone->_c;
 	}
 	bone->updateAppliedTransform();
+}
+
+int PhysicsConstraint::getOrder() {
+	return (int) _data.getOrder();
 }

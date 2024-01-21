@@ -41,9 +41,6 @@
 #include "core/variant/array.h"
 #include "scene/resources/mesh.h"
 #include "servers/rendering_server.h"
-#if VERSION_MINOR > 0
-#include "editor/editor_interface.h"
-#endif
 #else
 #include "core/engine.h"
 #endif
@@ -52,6 +49,7 @@
 #include "scene/main/viewport.h"
 
 #if TOOLS_ENABLED
+#include "editor/editor_interface.h"
 #include "editor/editor_plugin.h"
 #endif
 
@@ -252,6 +250,7 @@ void SpineSprite::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_skeleton_data_res"), &SpineSprite::get_skeleton_data_res);
 	ClassDB::bind_method(D_METHOD("get_skeleton"), &SpineSprite::get_skeleton);
 	ClassDB::bind_method(D_METHOD("get_animation_state"), &SpineSprite::get_animation_state);
+	ClassDB::bind_method(D_METHOD("set_animation_state", "animation_state"), &SpineSprite::set_animation_state);
 	ClassDB::bind_method(D_METHOD("on_skeleton_data_changed"), &SpineSprite::on_skeleton_data_changed);
 
 	ClassDB::bind_method(D_METHOD("get_global_bone_transform", "bone_name"), &SpineSprite::get_global_bone_transform);
@@ -302,6 +301,13 @@ void SpineSprite::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("update_skeleton", "delta"), &SpineSprite::update_skeleton);
 	ClassDB::bind_method(D_METHOD("new_skin", "name"), &SpineSprite::new_skin);
+
+	ClassDB::bind_method(D_METHOD("_on_animation_state_animation_started", "track_entry"), &SpineSprite::_on_animation_state_animation_started);
+	ClassDB::bind_method(D_METHOD("_on_animation_state_animation_interrupted", "track_entry"), &SpineSprite::_on_animation_state_animation_interrupted);
+	ClassDB::bind_method(D_METHOD("_on_animation_state_animation_ended", "track_entry"), &SpineSprite::_on_animation_state_animation_ended);
+	ClassDB::bind_method(D_METHOD("_on_animation_state_animation_completed", "track_entry"), &SpineSprite::_on_animation_state_animation_completed);
+	ClassDB::bind_method(D_METHOD("_on_animation_state_animation_disposed", "track_entry"), &SpineSprite::_on_animation_state_animation_disposed);
+	ClassDB::bind_method(D_METHOD("_on_animation_state_animation_event", "track_entry", "event"), &SpineSprite::_on_animation_state_animation_event);
 
 	ADD_SIGNAL(MethodInfo("animation_started", PropertyInfo(Variant::OBJECT, "spine_sprite", PROPERTY_HINT_TYPE_STRING, "SpineSprite"), PropertyInfo(Variant::OBJECT, "animation_state", PROPERTY_HINT_TYPE_STRING, "SpineAnimationState"), PropertyInfo(Variant::OBJECT, "track_entry", PROPERTY_HINT_TYPE_STRING, "SpineTrackEntry")));
 	ADD_SIGNAL(MethodInfo("animation_interrupted", PropertyInfo(Variant::OBJECT, "spine_sprite", PROPERTY_HINT_TYPE_STRING, "SpineSprite"), PropertyInfo(Variant::OBJECT, "animation_state", PROPERTY_HINT_TYPE_STRING, "SpineAnimationState"), PropertyInfo(Variant::OBJECT, "track_entry", PROPERTY_HINT_TYPE_STRING, "SpineTrackEntry")));
@@ -418,7 +424,10 @@ Ref<SpineSkeletonDataResource> SpineSprite::get_skeleton_data_res() {
 void SpineSprite::on_skeleton_data_changed() {
 	remove_meshes();
 	skeleton.unref();
-	animation_state.unref();
+	if (animation_state.is_valid() && animation_state->has_spine_sprite())
+	{
+		set_animation_state(Ref<SpineAnimationState>());
+	}
 	emit_signal(SNAME("_internal_spine_objects_invalidated"));
 
 	if (skeleton_data_res.is_valid()) {
@@ -435,9 +444,13 @@ void SpineSprite::on_skeleton_data_changed() {
 		skeleton = Ref<SpineSkeleton>(memnew(SpineSkeleton));
 		skeleton->set_spine_sprite(this);
 
-		animation_state = Ref<SpineAnimationState>(memnew(SpineAnimationState));
-		animation_state->set_spine_sprite(this);
-		animation_state->get_spine_object()->setListener(this);
+		if (animation_state.is_null() || animation_state->has_spine_sprite())
+		{
+			Ref<SpineAnimationState> animationState = Ref<SpineAnimationState>(memnew(SpineAnimationState));
+			animationState->set_spine_sprite(this);
+			// animation_state->get_spine_object()->setListener(this);
+			set_animation_state(animationState);
+		}
 
 		animation_state->update(0);
 		animation_state->apply(skeleton);
@@ -453,6 +466,38 @@ void SpineSprite::on_skeleton_data_changed() {
 
 	NOTIFY_PROPERTY_LIST_CHANGED();
 }
+
+
+void SpineSprite::_on_animation_state_animation_started(Ref<SpineTrackEntry> p_track_entry)
+{
+	emit_signal(SNAME("animation_started"), this, animation_state, p_track_entry);
+}
+
+void SpineSprite::_on_animation_state_animation_interrupted(Ref<SpineTrackEntry> p_track_entry)
+{
+	emit_signal(SNAME("animation_interrupted"), this, animation_state, p_track_entry);
+}
+
+void SpineSprite::_on_animation_state_animation_ended(Ref<SpineTrackEntry> p_track_entry)
+{
+	emit_signal(SNAME("animation_ended"), this, animation_state, p_track_entry);
+}
+
+void SpineSprite::_on_animation_state_animation_completed(Ref<SpineTrackEntry> p_track_entry)
+{
+	emit_signal(SNAME("animation_completed"), this, animation_state, p_track_entry);
+}
+
+void SpineSprite::_on_animation_state_animation_disposed(Ref<SpineTrackEntry> p_track_entry)
+{
+	emit_signal(SNAME("animation_disposed"), this, animation_state, p_track_entry);
+}
+
+void SpineSprite::_on_animation_state_animation_event(Ref<SpineTrackEntry> p_track_entry, Ref<SpineEvent> p_event)
+{
+	emit_signal(SNAME("animation_event"), this, animation_state, p_track_entry, p_event);
+}
+
 
 void SpineSprite::generate_meshes_for_slots(Ref<SpineSkeleton> skeleton_ref) {
 	auto skeleton = skeleton_ref->get_spine_object();
@@ -513,6 +558,48 @@ Ref<SpineSkeleton> SpineSprite::get_skeleton() {
 
 Ref<SpineAnimationState> SpineSprite::get_animation_state() {
 	return animation_state;
+}
+
+void SpineSprite::set_animation_state(Ref<SpineAnimationState> p_animation_state)
+{
+	if (animation_state.is_valid())
+	{
+#if VERSION_MAJOR > 3
+		animation_state->disconnect(SNAME("animation_started"), callable_mp(this, &SpineSprite::_on_animation_state_animation_started));
+		animation_state->disconnect(SNAME("animation_interrupted"), callable_mp(this, &SpineSprite::_on_animation_state_animation_interrupted));
+		animation_state->disconnect(SNAME("animation_ended"), callable_mp(this, &SpineSprite::_on_animation_state_animation_ended));
+		animation_state->disconnect(SNAME("animation_completed"), callable_mp(this, &SpineSprite::_on_animation_state_animation_completed));
+		animation_state->disconnect(SNAME("animation_disposed"), callable_mp(this, &SpineSprite::_on_animation_state_animation_disposed));
+		animation_state->disconnect(SNAME("animation_event"), callable_mp(this, &SpineSprite::_on_animation_state_animation_event));
+#else
+		animation_state->disconnect(SNAME("animation_started"), this, SNAME("_on_animation_state_animation_started"));
+		animation_state->disconnect(SNAME("animation_interrupted"), this, SNAME("_on_animation_state_animation_interrupted"));
+		animation_state->disconnect(SNAME("animation_ended"), this, SNAME("_on_animation_state_animation_ended"));
+		animation_state->disconnect(SNAME("animation_completed"), this, SNAME("_on_animation_state_animation_completed"));
+		animation_state->disconnect(SNAME("animation_disposed"), this, SNAME("_on_animation_state_animation_disposed"));
+		animation_state->disconnect(SNAME("animation_event"), this, SNAME("_on_animation_state_animation_event"));
+#endif
+	}
+	
+	animation_state = p_animation_state;
+	if (animation_state.is_valid())
+	{
+#if VERSION_MAJOR > 3
+		animation_state->connect(SNAME("animation_started"), callable_mp(this, &SpineSprite::_on_animation_state_animation_started));
+		animation_state->connect(SNAME("animation_interrupted"), callable_mp(this, &SpineSprite::_on_animation_state_animation_interrupted));
+		animation_state->connect(SNAME("animation_ended"), callable_mp(this, &SpineSprite::_on_animation_state_animation_ended));
+		animation_state->connect(SNAME("animation_completed"), callable_mp(this, &SpineSprite::_on_animation_state_animation_completed));
+		animation_state->connect(SNAME("animation_disposed"), callable_mp(this, &SpineSprite::_on_animation_state_animation_disposed));
+		animation_state->connect(SNAME("animation_event"), callable_mp(this, &SpineSprite::_on_animation_state_animation_event));
+#else
+		animation_state->connect(SNAME("animation_started"), this, SNAME("_on_animation_state_animation_started"));
+		animation_state->connect(SNAME("animation_interrupted"), this, SNAME("_on_animation_state_animation_interrupted"));
+		animation_state->connect(SNAME("animation_ended"), this, SNAME("_on_animation_state_animation_ended"));
+		animation_state->connect(SNAME("animation_completed"), this, SNAME("_on_animation_state_animation_completed"));
+		animation_state->connect(SNAME("animation_disposed"), this, SNAME("_on_animation_state_animation_disposed"));
+		animation_state->connect(SNAME("animation_event"), this, SNAME("_on_animation_state_animation_event"));
+#endif
+	}
 }
 
 void SpineSprite::_notification(int what) {
@@ -1044,7 +1131,7 @@ void SpineSprite::draw() {
 			}
 		}
 	}
-
+/*
 #if TOOLS_ENABLED
 	Ref<Font> default_font;
 	auto control = memnew(Control);
@@ -1096,7 +1183,7 @@ void SpineSprite::draw() {
 		draw_string(default_font, Vector2(10, 0 + i * default_font->get_height()), hover_text_lines[i], Color(1, 1, 1, 1));
 #endif
 	}
-#endif
+#endif*/
 }
 
 void SpineSprite::draw_bone(spine::Bone *bone, const Color &color) {
@@ -1111,7 +1198,7 @@ void SpineSprite::draw_bone(spine::Bone *bone, const Color &color) {
 	draw_colored_polygon(points, color);
 }
 
-void SpineSprite::callback(spine::AnimationState *state, spine::EventType type, spine::TrackEntry *entry, spine::Event *event) {
+/*void SpineSprite::callback(spine::AnimationState *state, spine::EventType type, spine::TrackEntry *entry, spine::Event *event) {
 	Ref<SpineTrackEntry> entry_ref = Ref<SpineTrackEntry>(memnew(SpineTrackEntry));
 	entry_ref->set_spine_object(this, entry);
 
@@ -1141,7 +1228,7 @@ void SpineSprite::callback(spine::AnimationState *state, spine::EventType type, 
 			emit_signal(SNAME("animation_event"), this, animation_state, entry_ref, event_ref);
 			break;
 	}
-}
+}*/
 
 Transform2D SpineSprite::get_global_bone_transform(const String &bone_name) {
 	if (!animation_state.is_valid() && !skeleton.is_valid()) return get_global_transform();

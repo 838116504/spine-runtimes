@@ -139,9 +139,6 @@ namespace spine {
         void setScaleVelocity(float value);
         float getScaleVelocity();
 
-        void setActive(bool value);
-        bool isActive();
-
         void setRemaining(float value);
         float getRemaining();
 
@@ -150,9 +147,14 @@ namespace spine {
 
         void reset();
 
+		virtual void setActive(bool value);
+		virtual bool isActive();
+
         void setToSetupPose();
 
-        virtual void update(Physics physics);
+		virtual void update(Physics physics);
+
+		virtual int getOrder();
 
     private:
         PhysicsConstraintData& _data;

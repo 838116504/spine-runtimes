@@ -29,58 +29,101 @@
 
 #pragma once
 
-#include "SpineConstant.h"
-#include "SpineIkConstraintData.h"
-#include <spine/IkConstraint.h>
+#include "SpineConstraintData.h"
+#include "SpineBoneData.h"
+#include <spine/PhysicsConstraintData.h>
 
-class SpineBone;
+class SpinePhysicsConstraintData : public SpineConstraintData {
+	GDCLASS(SpinePhysicsConstraintData, SpineConstraintData)
 
-class SpineIkConstraint : public SpineSpriteOwnedObject<spine::IkConstraint> {
-	GDCLASS(SpineIkConstraint, SpineObjectWrapper)
-
-public:
-	spine::Physics physics_update_mode;
+	spine::PhysicsConstraintData *get_spine_constraint_data() const { return (spine::PhysicsConstraintData *) get_spine_object(); }
 
 protected:
 	static void _bind_methods();
 
 public:
-	void update();
+	void set_bone(Ref<SpineBoneData> p_bone);
 
-	int get_order();
+	Ref<SpineBoneData> get_bone() const;
 
-	Ref<SpineIkConstraintData> get_data();
+	void set_x(float p_x);
 
-	Array get_bones();
+	float get_x() const;
 
-	Ref<SpineBone> get_target();
+	void set_y(float p_y);
 
-	void set_target(Ref<SpineBone> v);
+	float get_y() const;
 
-	int get_bend_direction();
+	void set_rotate(float p_rotate);
 
-	void set_bend_direction(int v);
+	float get_rotate() const;
 
-	bool get_compress();
+	void set_scale_x(float p_scale_x);
 
-	void set_compress(bool v);
+	float get_scale_x() const;
 
-	bool get_stretch();
+	void set_shear_x(float p_shear_x);
 
-	void set_stretch(bool v);
+	float get_shear_x() const;
 
-	float get_mix();
+	void set_step(float p_step);
 
-	void set_mix(float v);
+	float get_step() const;
 
-	float get_softness();
+	void set_inertia(float p_inertia);
 
-	void set_softness(float v);
+	float get_inertia() const;
 
-	bool is_active();
+	void set_strength(float p_strength);
 
-	void set_active(bool v);
+	float get_strength() const;
 
-	SpineConstant::PhysicsUpdateMode get_physics_update_mode() const;
-	void set_physics_update_mode(SpineConstant::PhysicsUpdateMode p_mode);
+	void set_damping(float p_damping);
+
+	float get_damping() const;
+
+	void set_mass_inverse(float p_mass_inverse);
+
+	float get_mass_inverse() const;
+
+	void set_wind(float p_wind);
+
+	float get_wind() const;
+
+	void set_gravity(float p_gravity);
+
+	float get_gravity() const;
+
+	void set_mix(float p_mix);
+
+	float get_mix() const;
+
+	void set_inertia_global(bool p_inertia_global);
+
+	bool is_inertia_global() const;
+
+	void set_strength_global(bool p_strength_global);
+
+	bool is_strength_global() const;
+
+	void set_damping_global(bool p_damping_global);
+
+	bool is_damping_global() const;
+
+	void set_mass_global(bool p_mass_global);
+
+	bool is_mass_global() const;
+
+	void set_wind_global(bool p_wind_global);
+
+	bool is_wind_global() const;
+
+	void set_gravity_global(bool p_gravity_global);
+
+	bool is_gravity_global() const;
+
+	void set_mix_global(bool p_mix_global);
+
+	bool is_mix_global() const;
+
 };

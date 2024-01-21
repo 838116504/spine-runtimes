@@ -103,8 +103,8 @@ public:
 					 SpineRendererObject *renderer_object);
 };
 
-class SpineSprite : public Node2D,
-					public spine::AnimationStateListenerObject {
+class SpineSprite : public Node2D/*,
+					public spine::AnimationStateListenerObject*/ {
 	GDCLASS(SpineSprite, Node2D)
 
 	friend class SpineBone;
@@ -160,7 +160,7 @@ protected:
 	void draw();
 	void draw_bone(spine::Bone *bone, const Color &color);
 
-	void callback(spine::AnimationState *state, spine::EventType type, spine::TrackEntry *entry, spine::Event *event);
+	//void callback(spine::AnimationState *state, spine::EventType type, spine::TrackEntry *entry, spine::Event *event);
 
 public:
 	SpineSprite();
@@ -173,8 +173,16 @@ public:
 	Ref<SpineSkeleton> get_skeleton();
 
 	Ref<SpineAnimationState> get_animation_state();
+	void set_animation_state(Ref<SpineAnimationState> p_animation_state);
 
 	void on_skeleton_data_changed();
+
+	void _on_animation_state_animation_started(Ref<SpineTrackEntry> p_track_entry);
+	void _on_animation_state_animation_interrupted(Ref<SpineTrackEntry> p_track_entry);
+	void _on_animation_state_animation_ended(Ref<SpineTrackEntry> p_track_entry);
+	void _on_animation_state_animation_completed(Ref<SpineTrackEntry> p_track_entry);
+	void _on_animation_state_animation_disposed(Ref<SpineTrackEntry> p_track_entry);
+	void _on_animation_state_animation_event(Ref<SpineTrackEntry> p_track_entry, Ref<SpineEvent> p_event);
 
 	void update_skeleton(float delta);
 

@@ -196,7 +196,7 @@ continue_outer:
 			}
 		}
 
-		for (size_t ii = 0; ii < pathCount; ++ii) {
+		for (size_t ii = 0; ii < physicsCount; ++ii) {
 			PhysicsConstraint *constraint = _physicsConstraints[ii];
 			if (constraint->getData().getOrder() == i) {
 				sortPhysicsConstraint(constraint);
@@ -426,6 +426,19 @@ PathConstraint *Skeleton::findPathConstraint(const String &constraintName) {
 	return NULL;
 }
 
+PhysicsConstraint *Skeleton::findPhysicsConstraint(const String &constraintName) {
+	assert(constraintName.length() > 0);
+
+	for (size_t i = 0, n = _physicsConstraints.size(); i < n; ++i) {
+		PhysicsConstraint *constraint = _physicsConstraints[i];
+		if (constraint->_data.getName() == constraintName) {
+			return constraint;
+		}
+	}
+
+	return NULL;
+}
+
 void Skeleton::getBounds(float &outX, float &outY, float &outWidth, float &outHeight, Vector<float> &outVertexBuffer) {
 	float minX = FLT_MAX;
 	float minY = FLT_MAX;
@@ -509,6 +522,11 @@ Vector<PathConstraint *> &Skeleton::getPathConstraints() {
 Vector<TransformConstraint *> &Skeleton::getTransformConstraints() {
 	return _transformConstraints;
 }
+
+Vector<PhysicsConstraint *> &Skeleton::getPhysicsConstraints() {
+	return _physicsConstraints;
+}
+
 
 Skin *Skeleton::getSkin() {
 	return _skin;

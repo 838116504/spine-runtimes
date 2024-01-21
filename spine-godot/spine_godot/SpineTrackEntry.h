@@ -36,7 +36,7 @@
 
 #include "SpineSprite.h"
 
-class SpineTrackEntry : public SpineSpriteOwnedObject<spine::TrackEntry> {
+class SpineTrackEntry : public SpineSkeletonDataResourceOwnedObject<spine::TrackEntry> {
 	GDCLASS(SpineTrackEntry, SpineObjectWrapper);
 
 protected:
@@ -103,13 +103,17 @@ public:
 
 	void set_event_threshold(float v);
 
-	float get_attachment_threshold();
+	float get_mix_attachment_threshold();
 
-	void set_attachment_threshold(float v);
+	void set_mix_attachment_threshold(float v);
 
-	float get_draw_order_threshold();
+	float get_alpha_attachment_threshold();
 
-	void set_draw_order_threshold(float v);
+	void set_alpha_attachment_threshold(float v);
+
+	float get_mix_draw_order_threshold();
+
+	void set_mix_draw_order_threshold(float v);
 
 	Ref<SpineTrackEntry> get_next();
 

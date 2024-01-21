@@ -118,8 +118,8 @@ protected:
 #endif
 	}
 
-	void *_get_spine_object_internal() { return spine_object; }
-	void *_get_spine_owner_internal() { return spine_owner; }
+	void *_get_spine_object_internal() const { return spine_object; }
+	void *_get_spine_owner_internal() const { return spine_owner; }
 };
 
 class SpineSprite;
@@ -131,11 +131,11 @@ public:
 		_set_spine_object_internal(_owner, _object);
 	}
 
-	OBJECT *get_spine_object() {
+	OBJECT *get_spine_object() const {
 		return (OBJECT *) _get_spine_object_internal();
 	}
 
-	SpineSprite *get_spine_owner() {
+	SpineSprite *get_spine_owner() const {
 		return (SpineSprite *) _get_spine_owner_internal();
 	}
 };
@@ -149,11 +149,11 @@ public:
 		_set_spine_object_internal(_owner, _object);
 	}
 
-	OBJECT *get_spine_object() {
+	OBJECT *get_spine_object() const {
 		return (OBJECT *) _get_spine_object_internal();
 	}
 
-	SpineSkeletonDataResource *get_spine_owner() {
+	SpineSkeletonDataResource *get_spine_owner() const {
 		return (SpineSkeletonDataResource *) _get_spine_owner_internal();
 	}
 };

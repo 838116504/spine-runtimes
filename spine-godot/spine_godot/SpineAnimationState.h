@@ -34,15 +34,19 @@
 
 class SpineTrackEntry;
 
-class SpineAnimationState : public REFCOUNTED {
+class SpineAnimationState : public REFCOUNTED,
+							public spine::AnimationStateListenerObject {
 	GDCLASS(SpineAnimationState, REFCOUNTED)
 
 protected:
 	static void _bind_methods();
 
+	void callback(spine::AnimationState *state, spine::EventType type, spine::TrackEntry *entry, spine::Event *event);
+
 private:
 	spine::AnimationState *animation_state;
 	SpineSprite *sprite;
+	Ref<SpineSkeletonDataResource> skeleton_data_res;
 
 public:
 	SpineAnimationState();
@@ -51,6 +55,13 @@ public:
 	spine::AnimationState *get_spine_object() { return animation_state; }
 
 	void set_spine_sprite(SpineSprite *sprite);
+
+	bool has_spine_sprite() const;
+
+	Ref<SpineSkeletonDataResource> get_skeleton_data_res();
+	void set_skeleton_data_res(Ref<SpineSkeletonDataResource> p_res);
+
+	void _on_skeleton_data_changed();
 
 	void update(float delta);
 

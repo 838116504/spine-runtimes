@@ -61,10 +61,12 @@ void SpineTrackEntry::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_alpha", "v"), &SpineTrackEntry::set_alpha);
 	ClassDB::bind_method(D_METHOD("get_event_threshold"), &SpineTrackEntry::get_event_threshold);
 	ClassDB::bind_method(D_METHOD("set_event_threshold", "v"), &SpineTrackEntry::set_event_threshold);
-	ClassDB::bind_method(D_METHOD("get_attachment_threshold"), &SpineTrackEntry::get_attachment_threshold);
-	ClassDB::bind_method(D_METHOD("set_attachment_threshold", "v"), &SpineTrackEntry::set_attachment_threshold);
-	ClassDB::bind_method(D_METHOD("get_draw_order_threshold"), &SpineTrackEntry::get_draw_order_threshold);
-	ClassDB::bind_method(D_METHOD("set_draw_order_threshold", "v"), &SpineTrackEntry::set_draw_order_threshold);
+	ClassDB::bind_method(D_METHOD("get_mix_attachment_threshold"), &SpineTrackEntry::get_mix_attachment_threshold);
+	ClassDB::bind_method(D_METHOD("set_mix_aattachment_threshold", "v"), &SpineTrackEntry::set_mix_attachment_threshold);
+	ClassDB::bind_method(D_METHOD("get_alpha_attachment_threshold"), &SpineTrackEntry::get_alpha_attachment_threshold);
+	ClassDB::bind_method(D_METHOD("set_alpha_attachment_threshold", "v"), &SpineTrackEntry::set_alpha_attachment_threshold);
+	ClassDB::bind_method(D_METHOD("get_mix_draw_order_threshold"), &SpineTrackEntry::get_mix_draw_order_threshold);
+	ClassDB::bind_method(D_METHOD("set_mix_draw_order_threshold", "v"), &SpineTrackEntry::set_mix_draw_order_threshold);
 	ClassDB::bind_method(D_METHOD("get_next"), &SpineTrackEntry::get_next);
 	ClassDB::bind_method(D_METHOD("is_complete"), &SpineTrackEntry::is_complete);
 	ClassDB::bind_method(D_METHOD("get_mix_time"), &SpineTrackEntry::get_mix_time);
@@ -89,7 +91,7 @@ Ref<SpineAnimation> SpineTrackEntry::get_animation() {
 	auto animation = get_spine_object()->getAnimation();
 	if (!animation) return nullptr;
 	Ref<SpineAnimation> animation_ref(memnew(SpineAnimation));
-	animation_ref->set_spine_object(*get_spine_owner()->get_skeleton_data_res(), animation);
+	animation_ref->set_spine_object(get_spine_owner(), animation);
 	return animation_ref;
 }
 
@@ -237,24 +239,34 @@ void SpineTrackEntry::set_event_threshold(float v) {
 	get_spine_object()->setEventThreshold(v);
 }
 
-float SpineTrackEntry::get_attachment_threshold() {
+float SpineTrackEntry::get_mix_attachment_threshold() {
 	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getAttachmentThreshold();
+	return get_spine_object()->getMixAttachmentThreshold();
 }
 
-void SpineTrackEntry::set_attachment_threshold(float v) {
+void SpineTrackEntry::set_mix_attachment_threshold(float v) {
 	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->setAttachmentThreshold(v);
+	get_spine_object()->setMixAttachmentThreshold(v);
 }
 
-float SpineTrackEntry::get_draw_order_threshold() {
+float SpineTrackEntry::get_alpha_attachment_threshold() {
 	SPINE_CHECK(get_spine_object(), 0)
-	return get_spine_object()->getDrawOrderThreshold();
+	return get_spine_object()->getAlphaAttachmentThreshold();
 }
 
-void SpineTrackEntry::set_draw_order_threshold(float v) {
+void SpineTrackEntry::set_alpha_attachment_threshold(float v) {
 	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->setDrawOrderThreshold(v);
+	get_spine_object()->setAlphaAttachmentThreshold(v);
+}
+
+float SpineTrackEntry::get_mix_draw_order_threshold() {
+	SPINE_CHECK(get_spine_object(), 0)
+	return get_spine_object()->getMixDrawOrderThreshold();
+}
+
+void SpineTrackEntry::set_mix_draw_order_threshold(float v) {
+	SPINE_CHECK(get_spine_object(), )
+	get_spine_object()->setMixDrawOrderThreshold(v);
 }
 
 Ref<SpineTrackEntry> SpineTrackEntry::get_next() {

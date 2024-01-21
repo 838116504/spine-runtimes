@@ -30,13 +30,13 @@
 #pragma once
 
 #include "SpineConstant.h"
-#include "SpineIkConstraintData.h"
-#include <spine/IkConstraint.h>
+#include "SpinePhysicsConstraintData.h"
+#include <spine/PhysicsConstraint.h>
 
 class SpineBone;
 
-class SpineIkConstraint : public SpineSpriteOwnedObject<spine::IkConstraint> {
-	GDCLASS(SpineIkConstraint, SpineObjectWrapper)
+class SpinePhysicsConstraint : public SpineSpriteOwnedObject<spine::PhysicsConstraint> {
+	GDCLASS(SpinePhysicsConstraint, SpineObjectWrapper)
 
 public:
 	spine::Physics physics_update_mode;
@@ -49,37 +49,89 @@ public:
 
 	int get_order();
 
-	Ref<SpineIkConstraintData> get_data();
+	Ref<SpinePhysicsConstraintData> get_data();
 
-	Array get_bones();
+	void set_bone(Ref<SpineBone> p_bone);
+	Ref<SpineBone> get_bone();
 
-	Ref<SpineBone> get_target();
+	void set_inertia(float p_value);
+	float get_inertia();
 
-	void set_target(Ref<SpineBone> v);
+	void set_strength(float p_value);
+	float get_strength();
 
-	int get_bend_direction();
+	void set_damping(float p_value);
+	float get_damping();
 
-	void set_bend_direction(int v);
+	void set_mass_inverse(float p_value);
+	float get_mass_inverse();
 
-	bool get_compress();
+	void set_wind(float p_value);
+	float get_wind();
 
-	void set_compress(bool v);
+	void set_gravity(float p_value);
+	float get_gravity();
 
-	bool get_stretch();
-
-	void set_stretch(bool v);
-
+	void set_mix(float p_value);
 	float get_mix();
 
-	void set_mix(float v);
+	void set_reset(bool p_value);
+	bool get_reset();
 
-	float get_softness();
+	void set_ux(float p_value);
+	float get_ux();
 
-	void set_softness(float v);
+	void set_uy(float p_value);
+	float get_uy();
 
+	void set_cx(float p_value);
+	float get_cx();
+
+	void set_cy(float p_value);
+	float get_cy();
+
+	void set_tx(float p_value);
+	float get_tx();
+
+	void set_ty(float p_value);
+	float get_ty();
+
+	void set_x_offset(float p_value);
+	float get_x_offset();
+
+	void set_x_velocity(float p_value);
+	float get_x_velocity();
+
+	void set_y_offset(float p_value);
+	float get_y_offset();
+
+	void set_y_velocity(float p_value);
+	float get_y_velocity();
+
+	void set_rotate_offset(float p_value);
+	float get_rotate_offset();
+
+	void set_rotate_velocity(float p_value);
+	float get_rotate_velocity();
+
+	void set_scale_offset(float p_value);
+	float get_scale_offset();
+
+	void set_scale_velocity(float p_value);
+	float get_scale_velocity();
+
+	void set_active(bool p_value);
 	bool is_active();
 
-	void set_active(bool v);
+	void set_remaining(float p_value);
+	float get_remaining();
+
+	void set_last_time(float p_value);
+	float get_last_time();
+
+	void reset();
+
+	void set_to_setup_pose();
 
 	SpineConstant::PhysicsUpdateMode get_physics_update_mode() const;
 	void set_physics_update_mode(SpineConstant::PhysicsUpdateMode p_mode);

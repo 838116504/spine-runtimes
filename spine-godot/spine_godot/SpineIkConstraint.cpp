@@ -51,11 +51,15 @@ void SpineIkConstraint::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_softness", "v"), &SpineIkConstraint::set_softness);
 	ClassDB::bind_method(D_METHOD("is_active"), &SpineIkConstraint::is_active);
 	ClassDB::bind_method(D_METHOD("set_active", "v"), &SpineIkConstraint::set_active);
+	ClassDB::bind_method(D_METHOD("get_physics_update_mode"), &SpineIkConstraint::get_physics_update_mode);
+	ClassDB::bind_method(D_METHOD("set_physics_update_mode", "v"), &SpineIkConstraint::set_physics_update_mode);
+	
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "physics_update_mode", PROPERTY_HINT_ENUM, "None,Reset,Update,Pose", PROPERTY_USAGE_DEFAULT), "set_physics_update_mode", "get_physics_update_mode");
 }
 
 void SpineIkConstraint::update() {
 	SPINE_CHECK(get_spine_object(), )
-	get_spine_object()->update();
+	get_spine_object()->update(physics_update_mode);
 }
 
 int SpineIkConstraint::get_order() {
@@ -156,4 +160,14 @@ bool SpineIkConstraint::is_active() {
 void SpineIkConstraint::set_active(bool v) {
 	SPINE_CHECK(get_spine_object(), )
 	get_spine_object()->setActive(v);
+}
+
+SpineConstant::PhysicsUpdateMode SpineIkConstraint::get_physics_update_mode() const
+{
+	return (SpineConstant::PhysicsUpdateMode)physics_update_mode;
+}
+
+void SpineIkConstraint::set_physics_update_mode(SpineConstant::PhysicsUpdateMode p_mode)
+{
+	physics_update_mode = (spine::Physics)p_mode;
 }

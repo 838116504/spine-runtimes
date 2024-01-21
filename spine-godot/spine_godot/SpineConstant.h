@@ -115,6 +115,13 @@ public:
 		BoneMode_Follow,
 		BoneMode_Drive
 	};
+
+	enum PhysicsUpdateMode {
+		PHYSICS_UPDATE_MODE_NONE = 0,
+		PHYSICS_UPDATE_MODE_RESET = 1,
+		PHYSICS_UPDATE_MODE_UPDATE = 2,
+		PHYSICS_UPDATE_MODE_POSE = 3
+	};
 };
 
 VARIANT_ENUM_CAST(SpineConstant::MixBlend)
@@ -127,3 +134,4 @@ VARIANT_ENUM_CAST(SpineConstant::RotateMode)
 VARIANT_ENUM_CAST(SpineConstant::BlendMode)
 VARIANT_ENUM_CAST(SpineConstant::UpdateMode)
 VARIANT_ENUM_CAST(SpineConstant::BoneMode)
+VARIANT_ENUM_CAST(SpineConstant::PhysicsUpdateMode)

@@ -33,6 +33,7 @@
 #include <spine/spine.h>
 
 class SpineSkeletonDataResource;
+class SpineSlot;
 
 class SpineAttachment : public SpineSkeletonDataResourceOwnedObject<spine::Attachment> {
 	GDCLASS(SpineAttachment, SpineObjectWrapper)
@@ -46,4 +47,16 @@ public:
 	String get_attachment_name();
 
 	Ref<SpineAttachment> copy();
+};
+
+
+class SpineBoundingBoxAttachment : public SpineAttachment
+{
+	GDCLASS(SpineBoundingBoxAttachment, SpineAttachment)
+
+protected:
+	static void _bind_methods();
+
+public:
+	PackedVector2Array get_vertices(Ref<SpineSlot> p_slot);
 };

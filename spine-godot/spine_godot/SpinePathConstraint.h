@@ -29,12 +29,17 @@
 
 #pragma once
 
+#include "SpineConstant.h"
 #include "SpinePathConstraintData.h"
 #include "SpineSlot.h"
 #include <spine/PathConstraint.h>
 
+
 class SpinePathConstraint : public SpineSpriteOwnedObject<spine::PathConstraint> {
 	GDCLASS(SpinePathConstraint, SpineObjectWrapper)
+
+public:
+	spine::Physics physics_update_mode;
 
 protected:
 	static void _bind_methods();
@@ -75,4 +80,7 @@ public:
 	bool is_active();
 
 	void set_active(bool v);
+
+	SpineConstant::PhysicsUpdateMode get_physics_update_mode() const;
+	void set_physics_update_mode(SpineConstant::PhysicsUpdateMode p_mode);
 };

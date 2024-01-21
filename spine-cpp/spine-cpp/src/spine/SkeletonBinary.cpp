@@ -282,6 +282,9 @@ SkeletonData *SkeletonBinary::readSkeletonData(const unsigned char *binary, cons
 		else {
 			delete input;
 			delete skeletonData;
+			char errorMsg[255];
+			snprintf(errorMsg, 255, "Read %zd/%zd skin failed!", i, n);
+			setError(errorMsg, "");
 			return NULL;
 		}
 	}
@@ -338,6 +341,7 @@ SkeletonData *SkeletonBinary::readSkeletonData(const unsigned char *binary, cons
 		if (!animation) {
 			delete input;
 			delete skeletonData;
+			setError("Read animation failed!", "");
 			return NULL;
 		}
 		skeletonData->_animations[i] = animation;

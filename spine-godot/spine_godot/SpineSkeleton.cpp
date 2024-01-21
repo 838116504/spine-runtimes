@@ -46,6 +46,7 @@ void SpineSkeleton::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("find_ik_constraint", "constraint_name"), &SpineSkeleton::find_ik_constraint);
 	ClassDB::bind_method(D_METHOD("find_transform_constraint", "constraint_name"), &SpineSkeleton::find_transform_constraint);
 	ClassDB::bind_method(D_METHOD("find_path_constraint", "constraint_name"), &SpineSkeleton::find_path_constraint);
+	ClassDB::bind_method(D_METHOD("find_physics_constraint", "constraint_name"), &SpineSkeleton::find_physics_constraint);
 	ClassDB::bind_method(D_METHOD("get_bounds"), &SpineSkeleton::get_bounds);
 	ClassDB::bind_method(D_METHOD("get_root_bone"), &SpineSkeleton::get_root_bone);
 	ClassDB::bind_method(D_METHOD("get_data"), &SpineSkeleton::get_skeleton_data_res);
@@ -67,7 +68,12 @@ void SpineSkeleton::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_scale_x", "v"), &SpineSkeleton::set_scale_x);
 	ClassDB::bind_method(D_METHOD("get_scale_y"), &SpineSkeleton::get_scale_y);
 	ClassDB::bind_method(D_METHOD("set_scale_y", "v"), &SpineSkeleton::set_scale_y);
+	ClassDB::bind_method(D_METHOD("get_physics_update_mode"), &SpineSkeleton::get_physics_update_mode);
+	ClassDB::bind_method(D_METHOD("set_physics_update_mode", "v"), &SpineSkeleton::set_physics_update_mode);
+	
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "physics_update_mode", PROPERTY_HINT_ENUM, "None,Reset,Update,Pose", PROPERTY_USAGE_DEFAULT), "set_physics_update_mode", "get_physics_update_mode");
 }
+
 
 SpineSkeleton::SpineSkeleton() : skeleton(nullptr), sprite(nullptr), last_skin(nullptr) {
 }
@@ -92,7 +98,7 @@ Ref<SpineSkeletonDataResource> SpineSkeleton::get_skeleton_data_res() const {
 
 void SpineSkeleton::update_world_transform() {
 	SPINE_CHECK(skeleton, )
-	skeleton->updateWorldTransform();
+	skeleton->updateWorldTransform(physics_update_mode);
 }
 
 void SpineSkeleton::set_to_setup_pose() {
@@ -179,6 +185,7 @@ Ref<SpineIkConstraint> SpineSkeleton::find_ik_constraint(const String &constrain
 	auto constraint = skeleton->findIkConstraint(SPINE_STRING_TMP(constraint_name));
 	if (!constraint) return nullptr;
 	Ref<SpineIkConstraint> constraint_ref(memnew(SpineIkConstraint));
+	constraint_ref->physics_update_mode = physics_update_mode;
 	constraint_ref->set_spine_object(sprite, constraint);
 	return constraint_ref;
 }
@@ -189,6 +196,7 @@ Ref<SpineTransformConstraint> SpineSkeleton::find_transform_constraint(const Str
 	auto constraint = skeleton->findTransformConstraint(SPINE_STRING_TMP(constraint_name));
 	if (!constraint) return nullptr;
 	Ref<SpineTransformConstraint> constraint_ref(memnew(SpineTransformConstraint));
+	constraint_ref->physics_update_mode = physics_update_mode;
 	constraint_ref->set_spine_object(sprite, constraint);
 	return constraint_ref;
 }
@@ -199,6 +207,23 @@ Ref<SpinePathConstraint> SpineSkeleton::find_path_constraint(const String &const
 	auto constraint = skeleton->findPathConstraint(SPINE_STRING_TMP(constraint_name));
 	if (!constraint) return nullptr;
 	Ref<SpinePathConstraint> constraint_ref(memnew(SpinePathConstraint));
+	constraint_ref->physics_update_mode = physics_update_mode;
+	constraint_ref->set_spine_object(sprite, constraint);
+	return constraint_ref;
+}
+
+Ref<SpinePhysicsConstraint> SpineSkeleton::find_physics_constraint(const String &constraint_name)
+{
+	SPINE_CHECK(skeleton, nullptr)
+	if (EMPTY(constraint_name))
+		return nullptr;
+	
+	auto constraint = skeleton->findPhysicsConstraint(SPINE_STRING_TMP(constraint_name));
+	if (!constraint)
+		return nullptr;
+	
+	Ref<SpinePhysicsConstraint> constraint_ref(memnew(SpinePhysicsConstraint));
+	constraint_ref->physics_update_mode = physics_update_mode;
 	constraint_ref->set_spine_object(sprite, constraint);
 	return constraint_ref;
 }
@@ -269,6 +294,7 @@ Array SpineSkeleton::get_ik_constraints() {
 	for (int i = 0; i < result.size(); ++i) {
 		auto constraint = constraints[i];
 		Ref<SpineIkConstraint> constraint_ref(memnew(SpineIkConstraint));
+		constraint_ref->physics_update_mode = physics_update_mode;
 		constraint_ref->set_spine_object(sprite, constraint);
 		result[i] = constraint_ref;
 	}
@@ -283,6 +309,7 @@ Array SpineSkeleton::get_path_constraints() {
 	for (int i = 0; i < result.size(); ++i) {
 		auto constraint = constraints[i];
 		Ref<SpinePathConstraint> constraint_ref(memnew(SpinePathConstraint));
+		constraint_ref->physics_update_mode = physics_update_mode;
 		constraint_ref->set_spine_object(sprite, constraint);
 		result[i] = constraint_ref;
 	}
@@ -296,6 +323,7 @@ Array SpineSkeleton::get_transform_constraints() {
 	for (int i = 0; i < result.size(); ++i) {
 		auto constraint = constraints[i];
 		Ref<SpineTransformConstraint> constraint_ref(memnew(SpineTransformConstraint));
+		constraint_ref->physics_update_mode = physics_update_mode;
 		constraint_ref->set_spine_object(sprite, constraint);
 		result[i] = constraint_ref;
 	}
@@ -366,4 +394,14 @@ float SpineSkeleton::get_scale_y() {
 void SpineSkeleton::set_scale_y(float v) {
 	SPINE_CHECK(skeleton, )
 	skeleton->setScaleY(v);
+}
+
+SpineConstant::PhysicsUpdateMode SpineSkeleton::get_physics_update_mode() const
+{
+	return (SpineConstant::PhysicsUpdateMode)physics_update_mode;
+}
+
+void SpineSkeleton::set_physics_update_mode(SpineConstant::PhysicsUpdateMode p_mode)
+{
+	physics_update_mode = (spine::Physics)p_mode;
 }
